@@ -81,12 +81,35 @@ function mndev_affiliate_add_referral_field_checkout( $checkout ) {
 }
 
 /**
+ * Tìm Affiliate dựa trên mã giới thiệu (Hỗ trợ Affiliate ID, Username, hoặc User ID)
+ */
+function mndev_affiliate_get_by_code( $code ) {
+	$code = trim( $code );
+	if ( empty( $code ) ) {
+		return false;
+	}
+
+	// 1. Thử tìm bằng hàm mặc định của AffiliateWP (ưu tiên Affiliate ID và Username)
+	$aff = affwp_get_affiliate( $code );
+
+	// 2. Nếu không tìm thấy, và mã là số -> Có thể họ nhập User ID thay vì Affiliate ID
+	if ( ! $aff && is_numeric( $code ) ) {
+		$aff_id = affiliate_wp()->affiliates->get_column_by( 'affiliate_id', 'user_id', absint( $code ) );
+		if ( $aff_id ) {
+			$aff = affwp_get_affiliate( $aff_id );
+		}
+	}
+
+	return $aff;
+}
+
+/**
  * Kiểm tra mã giới thiệu có hợp lệ không
  */
 function mndev_affiliate_validate_referral_field() {
 	if ( ! empty( $_POST['mndev_affiliate_code'] ) ) {
 		$code = sanitize_text_field( $_POST['mndev_affiliate_code'] );
-		$aff = affwp_get_affiliate( $code );
+		$aff = mndev_affiliate_get_by_code( $code );
 		
 		if ( ! $aff || ! affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
 			wc_add_notice( __( 'Mã giới thiệu không hợp lệ. Vui lòng kiểm tra lại hoặc để trống nếu không có mã.' ), 'error' );
@@ -100,7 +123,7 @@ function mndev_affiliate_validate_referral_field() {
 function mndev_affiliate_save_referral_field_to_order( $order, $data ) {
 	if ( ! empty( $_POST['mndev_affiliate_code'] ) ) {
 		$code = sanitize_text_field( $_POST['mndev_affiliate_code'] );
-		$aff = affwp_get_affiliate( $code );
+		$aff = mndev_affiliate_get_by_code( $code );
 		
 		if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
 			$order->update_meta_data( 'mndev_referring_affiliate_id', $aff->affiliate_id );
