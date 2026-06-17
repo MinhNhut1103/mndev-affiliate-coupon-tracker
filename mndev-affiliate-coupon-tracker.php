@@ -50,9 +50,6 @@ function mndev_affiliate_coupon_tracker_init() {
 		return;
 	}
 
-	// Đăng ký menu cài đặt
-	add_action( 'admin_menu', 'mndev_affiliate_coupon_tracker_menu' );
-
 	// Hook vào WooCommerce để chặn coupon và tạo mã ảo
 	add_filter( 'woocommerce_get_shop_coupon_data', 'mndev_affiliate_coupon_tracker_virtual_coupon', 10, 2 );
 
@@ -60,71 +57,6 @@ function mndev_affiliate_coupon_tracker_init() {
 	add_filter( 'affwp_get_referring_affiliate_id', 'mndev_affiliate_coupon_tracker_get_affiliate_id', 10, 3 );
 }
 add_action( 'plugins_loaded', 'mndev_affiliate_coupon_tracker_init' );
-
-/**
- * Thêm menu cài đặt (Submenu của Hoa hồng động hoặc menu độc lập)
- */
-function mndev_affiliate_coupon_tracker_menu() {
-	add_submenu_page(
-		'mndev-affwp-dynamic-rates',
-		'Cài đặt Mã Ưu đãi CTV',
-		'Mã ưu đãi CTV',
-		'manage_options',
-		'mndev-affiliate-coupon-tracker',
-		'mndev_affiliate_coupon_tracker_page'
-	);
-}
-
-/**
- * Giao diện cài đặt
- */
-function mndev_affiliate_coupon_tracker_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-
-	if ( isset( $_POST['mndev_affiliate_coupon_tracker_nonce'] ) && wp_verify_nonce( $_POST['mndev_affiliate_coupon_tracker_nonce'], 'mndev_save_coupon_settings' ) ) {
-		update_option( 'mndev_affwp_coupon_discount_type', sanitize_text_field( $_POST['discount_type'] ) );
-		update_option( 'mndev_affwp_coupon_discount_amount', (float) sanitize_text_field( $_POST['discount_amount'] ) );
-		echo '<div class="notice notice-success is-dismissible"><p>Đã lưu cấu hình mã ưu đãi.</p></div>';
-	}
-
-	$discount_type = get_option( 'mndev_affwp_coupon_discount_type', 'percent' );
-	$discount_amount = get_option( 'mndev_affwp_coupon_discount_amount', 0 );
-
-	?>
-	<div class="wrap">
-		<h1>Cài đặt Mã ưu đãi Cộng tác viên</h1>
-		<p>Khách hàng có thể nhập <strong>Username</strong> hoặc <strong>ID</strong> của Cộng tác viên vào ô Mã ưu đãi (Coupon) trong WooCommerce. Khi đó, hệ thống sẽ tự động tạo một mã giảm giá ảo và ghi nhận hoa hồng cho CTV đó.</p>
-		
-		<form method="post" action="">
-			<?php wp_nonce_field( 'mndev_save_coupon_settings', 'mndev_affiliate_coupon_tracker_nonce' ); ?>
-			<table class="form-table">
-				<tr>
-					<th scope="row"><label for="discount_type">Loại chiết khấu cho khách hàng</label></th>
-					<td>
-						<select name="discount_type" id="discount_type">
-							<option value="percent" <?php selected( $discount_type, 'percent' ); ?>>Giảm giá theo phần trăm (%)</option>
-							<option value="fixed_cart" <?php selected( $discount_type, 'fixed_cart' ); ?>>Giảm giá cố định giỏ hàng (VNĐ)</option>
-							<option value="fixed_product" <?php selected( $discount_type, 'fixed_product' ); ?>>Giảm giá cố định sản phẩm (VNĐ)</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="discount_amount">Mức chiết khấu</label></th>
-					<td>
-						<input type="number" step="0.01" name="discount_amount" id="discount_amount" value="<?php echo esc_attr( $discount_amount ); ?>" class="regular-text" />
-						<p class="description">Để <strong>0</strong> nếu bạn chỉ muốn ghi nhận hoa hồng cho CTV mà KHÔNG giảm tiền cho khách hàng.</p>
-					</td>
-				</tr>
-			</table>
-			<p class="submit">
-				<input type="submit" name="submit" id="submit" class="button button-primary" value="Lưu thay đổi" />
-			</p>
-		</form>
-	</div>
-	<?php
-}
 
 /**
  * Tạo mã giảm giá ảo (Virtual Coupon) nếu nhập đúng ID/Username CTV
