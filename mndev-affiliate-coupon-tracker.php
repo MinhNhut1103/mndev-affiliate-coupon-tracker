@@ -50,75 +50,78 @@ function mndev_affiliate_coupon_tracker_init() {
 		return;
 	}
 
-	// Hook vào WooCommerce để chặn coupon và tạo mã ảo
-	add_filter( 'woocommerce_get_shop_coupon_data', 'mndev_affiliate_coupon_tracker_virtual_coupon', 10, 2 );
+	// Thêm trường nhập mã giới thiệu vào trang thanh toán
+	add_action( 'woocommerce_after_order_notes', 'mndev_affiliate_add_referral_field_checkout' );
+	
+	// Xác thực mã giới thiệu khi khách hàng bấm thanh toán
+	add_action( 'woocommerce_checkout_process', 'mndev_affiliate_validate_referral_field' );
+	
+	// Lưu ID của CTV vào metadata của đơn hàng
+	add_action( 'woocommerce_checkout_create_order', 'mndev_affiliate_save_referral_field_to_order', 10, 2 );
 
-	// Hook vào AffiliateWP để ghi nhận ID của CTV khi dùng mã
+	// Hook vào AffiliateWP để ghi nhận ID của CTV
 	add_filter( 'affwp_get_referring_affiliate_id', 'mndev_affiliate_coupon_tracker_get_affiliate_id', 10, 3 );
 }
 add_action( 'plugins_loaded', 'mndev_affiliate_coupon_tracker_init' );
 
 /**
- * Tạo mã giảm giá ảo (Virtual Coupon) nếu nhập đúng ID/Username CTV
+ * Hiển thị khung nhập mã giới thiệu trên trang thanh toán (Checkout)
  */
-function mndev_affiliate_coupon_tracker_virtual_coupon( $data, $code ) {
-	// Nếu mã coupon đã tồn tại trong database của WooCommerce thì giữ nguyên
-	if ( ! empty( $data ) ) {
-		return $data;
-	}
-
-	// Tìm xem mã code nhập vào có khớp với username hoặc ID của CTV nào không
-	$affiliate = affwp_get_affiliate( $code );
-
-	if ( $affiliate && affiliate_wp()->tracking->is_valid_affiliate( $affiliate->affiliate_id ) ) {
-		// Trả về dữ liệu của một coupon ảo để WooCommerce áp dụng thành công
-		return array(
-			'id'                     => 0,
-			'amount'                 => 0, // Không giảm giá cho khách hàng
-			'discount_type'          => 'percent',
-			'usage_limit'            => '',
-			'usage_limit_per_user'   => '',
-			'limit_usage_to_x_items' => '',
-			'usage_count'            => '',
-			'expiry_date'            => '',
-			'free_shipping'          => false,
-			'individual_use'         => false,
-		);
-	}
-
-	return $data;
+function mndev_affiliate_add_referral_field_checkout( $checkout ) {
+	echo '<div id="mndev_affiliate_referral_field"><h3>Mã giới thiệu Cộng tác viên</h3>';
+	
+	woocommerce_form_field( 'mndev_affiliate_code', array(
+		'type'          => 'text',
+		'class'         => array('my-field-class form-row-wide'),
+		'label'         => __('Nhập mã giới thiệu (Username hoặc ID của CTV) nếu có'),
+		'placeholder'   => __('Ví dụ: 123 hoặc nhut1103'),
+	), $checkout->get_value( 'mndev_affiliate_code' ) );
+	
+	echo '</div>';
 }
 
 /**
- * Ghi nhận Affiliate ID khi khách hàng thanh toán dùng Coupon ảo
+ * Kiểm tra mã giới thiệu có hợp lệ không
+ */
+function mndev_affiliate_validate_referral_field() {
+	if ( ! empty( $_POST['mndev_affiliate_code'] ) ) {
+		$code = sanitize_text_field( $_POST['mndev_affiliate_code'] );
+		$aff = affwp_get_affiliate( $code );
+		
+		if ( ! $aff || ! affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
+			wc_add_notice( __( 'Mã giới thiệu không hợp lệ. Vui lòng kiểm tra lại hoặc để trống nếu không có mã.' ), 'error' );
+		}
+	}
+}
+
+/**
+ * Lưu Affiliate ID vào meta của đơn hàng nếu mã hợp lệ
+ */
+function mndev_affiliate_save_referral_field_to_order( $order, $data ) {
+	if ( ! empty( $_POST['mndev_affiliate_code'] ) ) {
+		$code = sanitize_text_field( $_POST['mndev_affiliate_code'] );
+		$aff = affwp_get_affiliate( $code );
+		
+		if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
+			$order->update_meta_data( 'mndev_referring_affiliate_id', $aff->affiliate_id );
+		}
+	}
+}
+
+/**
+ * Cung cấp Affiliate ID cho AffiliateWP khi tạo Referral
  */
 function mndev_affiliate_coupon_tracker_get_affiliate_id( $affiliate_id, $reference, $context ) {
 	// Chỉ xử lý trong ngữ cảnh WooCommerce
-	if ( 'woocommerce' !== $context ) {
+	if ( 'woocommerce' !== $context || empty( $reference ) ) {
 		return $affiliate_id;
 	}
 
-	$coupons = array();
-
-	// Lấy danh sách coupons từ giỏ hàng hoặc đơn hàng
-	if ( empty( $reference ) ) {
-		if ( function_exists( 'WC' ) && isset( WC()->cart ) ) {
-			$coupons = WC()->cart->get_applied_coupons();
-		}
-	} else {
-		$order = wc_get_order( $reference );
-		if ( $order ) {
-			$coupons = $order->get_coupon_codes();
-		}
-	}
-
-	// Kiểm tra xem trong các mã coupon được dùng, có mã nào là của CTV không
-	if ( ! empty( $coupons ) ) {
-		foreach ( $coupons as $code ) {
-			$aff = affwp_get_affiliate( $code );
-			if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
-				return $aff->affiliate_id; // Bắt buộc ghi nhận cho CTV này
-			}
+	$order = wc_get_order( $reference );
+	if ( $order ) {
+		$meta_aff_id = $order->get_meta( 'mndev_referring_affiliate_id' );
+		if ( ! empty( $meta_aff_id ) ) {
+			return $meta_aff_id; // Ghi nhận cho CTV này
 		}
 	}
 
