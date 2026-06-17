@@ -71,14 +71,11 @@ function mndev_affiliate_coupon_tracker_virtual_coupon( $data, $code ) {
 	$affiliate = affwp_get_affiliate( $code );
 
 	if ( $affiliate && affiliate_wp()->tracking->is_valid_affiliate( $affiliate->affiliate_id ) ) {
-		$discount_type = get_option( 'mndev_affwp_coupon_discount_type', 'percent' );
-		$discount_amount = get_option( 'mndev_affwp_coupon_discount_amount', 0 );
-
 		// Trả về dữ liệu của một coupon ảo để WooCommerce áp dụng thành công
 		return array(
 			'id'                     => 0,
-			'amount'                 => $discount_amount,
-			'discount_type'          => $discount_type,
+			'amount'                 => 0, // Không giảm giá cho khách hàng
+			'discount_type'          => 'percent',
 			'usage_limit'            => '',
 			'usage_limit_per_user'   => '',
 			'limit_usage_to_x_items' => '',
