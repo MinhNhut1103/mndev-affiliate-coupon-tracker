@@ -105,7 +105,7 @@ function mndev_affiliate_add_referral_field_checkout( $checkout ) {
 	woocommerce_form_field( 'mndev_affiliate_code', array(
 		'type'          => 'text',
 		'class'         => array('my-field-class form-row-wide'),
-		'label'         => __('Nhập tên người giới thiệu (Username) nếu có'),
+		'label'         => __('Nhập mã người giới thiệu'),
 		'placeholder'   => __('Ví dụ: nhut1103'),
 	), $checkout->get_value( 'mndev_affiliate_code' ) );
 	
