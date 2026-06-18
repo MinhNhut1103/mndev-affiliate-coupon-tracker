@@ -126,7 +126,9 @@ function mndev_affiliate_ajax_validate() {
 /**
  * Hiển thị khung nhập mã giới thiệu trên trang thanh toán (Checkout)
  */
-function mndev_affiliate_add_referral_field_checkout( $checkout ) {
+function mndev_affiliate_add_referral_field_checkout() {
+	$checkout = WC()->checkout();
+	
 	echo '<div id="mndev_affiliate_referral_field"><h3>Mã giới thiệu Cộng tác viên</h3>';
 	
 	woocommerce_form_field( 'mndev_affiliate_code', array(
