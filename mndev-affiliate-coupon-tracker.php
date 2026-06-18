@@ -115,6 +115,8 @@ function mndev_affiliate_ajax_validate() {
 	$aff = mndev_affiliate_get_by_code( $code );
 	
 	if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
+		// Thiết lập cookie ngay lập tức qua AJAX
+		affiliate_wp()->tracking->set_affiliate_id( $aff->affiliate_id );
 		wp_send_json_success();
 	} else {
 		wp_send_json_error();
@@ -161,7 +163,7 @@ function mndev_affiliate_get_by_code( $code ) {
 }
 
 /**
- * Kiểm tra mã giới thiệu có hợp lệ không
+ * Kiểm tra mã giới thiệu có hợp lệ không và set Cookie
  */
 function mndev_affiliate_validate_referral_field() {
 	if ( ! empty( $_POST['mndev_affiliate_code'] ) ) {
@@ -170,6 +172,9 @@ function mndev_affiliate_validate_referral_field() {
 		
 		if ( ! $aff || ! affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
 			wc_add_notice( __( 'Mã giới thiệu không hợp lệ. Vui lòng kiểm tra lại hoặc để trống nếu không có mã.' ), 'error' );
+		} else {
+			// Thiết lập cookie nếu nhấn Đặt hàng luôn
+			affiliate_wp()->tracking->set_affiliate_id( $aff->affiliate_id );
 		}
 	}
 }
