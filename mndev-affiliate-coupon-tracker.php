@@ -58,6 +58,9 @@ function mndev_affiliate_coupon_tracker_init() {
 	// Hook vào AffiliateWP để ghi nhận ID của CTV
 	add_filter( 'affwp_get_referring_affiliate_id', 'mndev_affiliate_coupon_tracker_get_affiliate_id', 10, 3 );
 	
+	// Cực kỳ quan trọng: Báo cho AffiliateWP biết là có CTV giới thiệu (dù không có cookie)
+	add_filter( 'affwp_was_referred', 'mndev_affiliate_coupon_tracker_was_referred', 10, 2 );
+	
 	// Enqueue JS
 	add_action( 'wp_enqueue_scripts', 'mndev_affiliate_enqueue_scripts' );
 	
@@ -66,6 +69,28 @@ function mndev_affiliate_coupon_tracker_init() {
 	add_action( 'wp_ajax_nopriv_mndev_validate_affiliate', 'mndev_affiliate_ajax_validate' );
 }
 add_action( 'plugins_loaded', 'mndev_affiliate_coupon_tracker_init' );
+
+/**
+ * Đánh lừa AffiliateWP rằng khách hàng này đã được giới thiệu (was_referred = true) 
+ * nếu họ có nhập mã giới thiệu hợp lệ ở Checkout.
+ */
+function mndev_affiliate_coupon_tracker_was_referred( $was_referred, $tracking ) {
+	if ( $was_referred ) {
+		return $was_referred;
+	}
+
+	// Nếu đang gửi form checkout và có nhập mã
+	if ( isset( $_POST['mndev_affiliate_code'] ) && ! empty( $_POST['mndev_affiliate_code'] ) ) {
+		$code = sanitize_text_field( $_POST['mndev_affiliate_code'] );
+		$aff = mndev_affiliate_get_by_code( $code );
+		
+		if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
+			return true;
+		}
+	}
+
+	return $was_referred;
+}
 
 /**
  * Enqueue JS script
