@@ -57,8 +57,44 @@ function mndev_affiliate_coupon_tracker_init() {
 
 	// Hook vào AffiliateWP để ghi nhận ID của CTV
 	add_filter( 'affwp_get_referring_affiliate_id', 'mndev_affiliate_coupon_tracker_get_affiliate_id', 10, 3 );
+	
+	// Enqueue JS
+	add_action( 'wp_enqueue_scripts', 'mndev_affiliate_enqueue_scripts' );
+	
+	// AJAX handlers
+	add_action( 'wp_ajax_mndev_validate_affiliate', 'mndev_affiliate_ajax_validate' );
+	add_action( 'wp_ajax_nopriv_mndev_validate_affiliate', 'mndev_affiliate_ajax_validate' );
 }
 add_action( 'plugins_loaded', 'mndev_affiliate_coupon_tracker_init' );
+
+/**
+ * Enqueue JS script
+ */
+function mndev_affiliate_enqueue_scripts() {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_wc_endpoint_url( 'order-pay' ) && ! is_wc_endpoint_url( 'order-received' ) ) {
+		wp_enqueue_script( 'mndev-affiliate-checkout', plugin_dir_url( __FILE__ ) . 'assets/checkout.js', array('jquery'), '1.0.0', true );
+		wp_localize_script( 'mndev-affiliate-checkout', 'mndev_affiliate_ajax', array(
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'mndev_validate_affiliate_nonce' )
+		));
+	}
+}
+
+/**
+ * AJAX Validate Affiliate
+ */
+function mndev_affiliate_ajax_validate() {
+	check_ajax_referer( 'mndev_validate_affiliate_nonce', 'nonce' );
+	
+	$code = isset( $_POST['code'] ) ? sanitize_text_field( $_POST['code'] ) : '';
+	$aff = mndev_affiliate_get_by_code( $code );
+	
+	if ( $aff && affiliate_wp()->tracking->is_valid_affiliate( $aff->affiliate_id ) ) {
+		wp_send_json_success();
+	} else {
+		wp_send_json_error();
+	}
+}
 
 /**
  * Hiển thị khung nhập mã giới thiệu trên trang thanh toán (Checkout)
