@@ -46,8 +46,8 @@ function mndev_affiliate_coupon_tracker_init() {
 		return;
 	}
 
-	// Thêm trường nhập mã giới thiệu vào trang thanh toán
-	add_action( 'woocommerce_after_order_notes', 'mndev_affiliate_add_referral_field_checkout' );
+	// Thêm trường nhập mã giới thiệu vào trang thanh toán, đặt bên dưới phần nhập mã giảm giá
+	add_action( 'woocommerce_checkout_before_customer_details', 'mndev_affiliate_add_referral_field_checkout' );
 	
 	// Xác thực mã giới thiệu khi khách hàng bấm thanh toán
 	add_action( 'woocommerce_checkout_process', 'mndev_affiliate_validate_referral_field' );
