@@ -131,11 +131,17 @@ function mndev_affiliate_add_referral_field_checkout() {
 	
 	echo '<div id="mndev_affiliate_referral_field"><h3>Mã giới thiệu Cộng tác viên</h3>';
 	
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '';
+	$host = preg_replace( '/^www\./', '', $host );
+	$parts = explode( '.', $host );
+	$domain_name = ! empty( $parts[0] ) ? $parts[0] : 'nhut1103';
+	$placeholder = sprintf( __('Ví dụ: %s'), $domain_name );
+	
 	woocommerce_form_field( 'mndev_affiliate_code', array(
 		'type'          => 'text',
 		'class'         => array('my-field-class form-row-wide'),
 		'label'         => __('Nhập mã người giới thiệu'),
-		'placeholder'   => __('Ví dụ: nhut1103'),
+		'placeholder'   => $placeholder,
 	), $checkout->get_value( 'mndev_affiliate_code' ) );
 	
 	echo '</div>';
