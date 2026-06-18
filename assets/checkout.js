@@ -3,7 +3,7 @@ jQuery(document).ready(function($) {
     if ($input.length === 0) return;
 
     // Create icon element
-    var $icon = $('<span id="mndev_aff_status_icon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; display: none;"></span>');
+    var $icon = $('<span id="mndev_aff_status_icon" style="position: absolute; right: 10px; top: 15%; transform: translateY(-50%); font-size: 18px; display: none;"></span>');
     
     // The input is usually inside a wrapper <span class="woocommerce-input-wrapper">
     var $wrapper = $input.parent('.woocommerce-input-wrapper');
