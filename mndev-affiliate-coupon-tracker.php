@@ -105,15 +105,15 @@ function mndev_affiliate_add_referral_field_checkout( $checkout ) {
 	woocommerce_form_field( 'mndev_affiliate_code', array(
 		'type'          => 'text',
 		'class'         => array('my-field-class form-row-wide'),
-		'label'         => __('Nhập mã giới thiệu (Username hoặc ID của CTV) nếu có'),
-		'placeholder'   => __('Ví dụ: 123 hoặc nhut1103'),
+		'label'         => __('Nhập tên người giới thiệu (Username) nếu có'),
+		'placeholder'   => __('Ví dụ: nhut1103'),
 	), $checkout->get_value( 'mndev_affiliate_code' ) );
 	
 	echo '</div>';
 }
 
 /**
- * Tìm Affiliate dựa trên mã giới thiệu (Hỗ trợ Affiliate ID, Username, hoặc User ID)
+ * Tìm Affiliate dựa trên Username duy nhất
  */
 function mndev_affiliate_get_by_code( $code ) {
 	$code = trim( $code );
@@ -121,18 +121,18 @@ function mndev_affiliate_get_by_code( $code ) {
 		return false;
 	}
 
-	// 1. Thử tìm bằng hàm mặc định của AffiliateWP (ưu tiên Affiliate ID và Username)
-	$aff = affwp_get_affiliate( $code );
-
-	// 2. Nếu không tìm thấy, và mã là số -> Có thể họ nhập User ID thay vì Affiliate ID
-	if ( ! $aff && is_numeric( $code ) ) {
-		$aff_id = affiliate_wp()->affiliates->get_column_by( 'affiliate_id', 'user_id', absint( $code ) );
-		if ( $aff_id ) {
-			$aff = affwp_get_affiliate( $aff_id );
-		}
+	// Chỉ tìm theo Username (user_login)
+	$user = get_user_by( 'login', $code );
+	if ( ! $user ) {
+		return false;
 	}
 
-	return $aff;
+	$aff_id = affiliate_wp()->affiliates->get_column_by( 'affiliate_id', 'user_id', $user->ID );
+	if ( ! $aff_id ) {
+		return false;
+	}
+
+	return affwp_get_affiliate( $aff_id );
 }
 
 /**

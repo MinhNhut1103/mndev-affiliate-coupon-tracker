@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
         var code = $input.val().trim();
         if (!code) return;
         
-        $icon.html('<span style="color:#888;">⏳</span>').show();
+        $icon.html('<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; vertical-align: middle; animation: spin 1s linear infinite;"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>').show();
 
         $.ajax({
             url: mndev_affiliate_ajax.ajax_url,
@@ -49,9 +49,9 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    $icon.html('<span style="color: green; font-weight: bold;">✔</span>').show();
+                    $icon.html('<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; vertical-align: middle;"><circle cx="12" cy="12" r="10" fill="#28a745"/><path d="M8.5 12.5L11 15L15.5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>').show();
                 } else {
-                    $icon.html('<span style="color: red; font-weight: bold;">✖</span>').show();
+                    $icon.html('<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px; vertical-align: middle;"><circle cx="12" cy="12" r="10" fill="#dc3545"/><path d="M15 9L9 15M9 9L15 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>').show();
                 }
             }
         });
