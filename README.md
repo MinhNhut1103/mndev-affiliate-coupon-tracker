@@ -15,9 +15,10 @@ Một Add-on mở rộng cho hệ thống AffiliateWP & WooCommerce, cho phép k
 
 Plugin này được thiết kế như một mắt xích phụ thuộc nên bắt buộc phải có:
 1. **[AffiliateWP](https://affiliatewp.com/):** Plugin lõi quản lý hệ thống Affiliate.
-2. **[Mndev AffiliateWP Dynamic Commission Rates](https://github.com/MinhNhut1103/mndev-affwp-dynamic-rates):** Plugin lõi hỗ trợ chia % hoa hồng động dựa trên tổng giá trị đơn hàng. 
 
-*(Plugin sẽ tự động tắt và hiển thị thông báo lỗi nếu bạn chưa bật đủ 2 plugin trên).*
+*(Plugin sẽ tự động tắt và hiển thị thông báo lỗi nếu bạn chưa bật plugin này).*
+
+> **💡 Khuyên dùng:** Để đạt hiệu quả tối đa trong việc chia % hoa hồng linh hoạt dựa trên tổng giá trị đơn hàng, bạn nên kết hợp sử dụng cùng plugin [Mndev AffiliateWP Dynamic Commission Rates](https://github.com/MinhNhut1103/mndev-affwp-dynamic-rates).
 
 ## 📥 Hướng dẫn cài đặt
 

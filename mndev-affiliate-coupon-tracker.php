@@ -27,10 +27,6 @@ function mndev_affiliate_coupon_tracker_check_dependencies() {
 		$missing_dependencies[] = 'AffiliateWP';
 	}
 
-	if ( ! is_plugin_active( 'mndev-affwp-dynamic-rates/mndev-affwp-dynamic-rates.php' ) ) {
-		$missing_dependencies[] = 'Mndev AffiliateWP Dynamic Commission Rates';
-	}
-
 	if ( ! empty( $missing_dependencies ) ) {
 		add_action( 'admin_notices', function() use ( $missing_dependencies ) {
 			$deps = implode( ', ', $missing_dependencies );
